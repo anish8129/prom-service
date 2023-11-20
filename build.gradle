@@ -1,0 +1,111 @@
+import com.bmuschko.gradle.docker.tasks.container.DockerCreateContainer
+import com.bmuschko.gradle.docker.tasks.container.DockerStartContainer
+import com.bmuschko.gradle.docker.tasks.container.DockerStopContainer
+import com.bmuschko.gradle.docker.tasks.container.DockerRemoveContainer
+import com.bmuschko.gradle.docker.tasks.image.DockerRemoveImage
+
+plugins {
+	id 'java'
+	id 'org.springframework.boot' version '2.7.3'
+	id 'io.spring.dependency-management' version '1.1.0'
+	id 'com.bmuschko.docker-spring-boot-application' version '6.1.4'
+}
+
+group = 'com.prometheus'
+version = ''
+sourceCompatibility = '17'
+
+ext {
+	serviceContainerName = 'prom-service'
+}
+
+jar {
+	enabled = false
+}
+
+
+repositories {
+	mavenLocal()
+	mavenCentral()
+}
+
+dependencies {
+	implementation 'org.springframework.boot:spring-boot-starter-actuator'
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'org.springframework.boot:spring-boot-starter-aop:2.7.3'
+	implementation 'io.micrometer:micrometer-registry-prometheus'
+	//implementation 'org.springframework.data:spring-data-redis:2.7.18-LOCAL'
+	implementation 'org.springframework.data:spring-data-redis:3.3.0-LOCAL-2'
+	implementation 'org.springframework.data:spring-data-keyvalue:3.3.0-SNAPSHOT'
+	implementation 'redis.clients:jedis:5.0.2'
+	implementation 'io.lettuce:lettuce-core:6.3.0.RELEASE'
+	implementation 'org.yaml:snakeyaml:1.29'
+	implementation 'org.apache.kafka:kafka-clients:3.5.1'
+	implementation 'org.testcontainers:testcontainers:1.17.2'
+	implementation "org.testcontainers:kafka:1.17.2"
+
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testImplementation 'org.testcontainers:testcontainers:1.17.2'
+	testImplementation "org.testcontainers:kafka:1.17.2"
+	testImplementation 'org.awaitility:awaitility:4.2.0'
+}
+
+tasks.named('test') {
+	useJUnitPlatform()
+}
+
+tasks.build.mustRunAfter(clean)
+
+task removeImageIfAny(type: DockerRemoveImage) {
+	targetImageId("$serviceContainerName")
+	force = true
+	onError(exception -> handleError(exception))
+}
+
+tasks.dockerBuildImage {
+	dependsOn(
+			removeImageIfAny,
+			clean,
+			build
+	)
+	inputDir = file("$projectDir")
+	images = ["$serviceContainerName:latest"]
+}
+
+task stopContainer(type: DockerStopContainer) {
+	targetContainerId("$serviceContainerName")
+	onError { exception -> handleError(exception) }
+}
+
+task removeContainer(type: DockerRemoveContainer) {
+	dependsOn stopContainer
+	targetContainerId("$serviceContainerName")
+	onError { exception -> handleError(exception) }
+}
+
+task createContainer(type: DockerCreateContainer) {
+	dependsOn(
+			dockerBuildImage,
+			removeContainer
+	)
+	targetImageId dockerBuildImage.getImageId()
+	containerName = "$serviceContainerName"
+	hostConfig.portBindings = ['8085:8085']
+	doLast {
+		printf("Setting the contaienerId $containerName")
+	}
+}
+
+task startContainer(type: DockerStartContainer) {
+	dependsOn createContainer
+	targetContainerId("$serviceContainerName")
+}
+
+private void handleError(Throwable exc) {
+	if (exc.message != null &&
+			!exc.message.contains('NotModifiedException') &&
+			!exc.message.contains('No such container') &&
+			!exc.message.contains('No such image')) {
+		throw new RuntimeException(exc)
+	}
+}

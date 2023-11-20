@@ -1,0 +1,16 @@
+events:
+  cards_dealt_hand_history:
+    attributes:
+      - attribute: appsessionid
+        keyname: appSessionId
+        api: gpc.GetSessionIDFromTid
+  PlayNowClicked:
+    attributes:
+      - attribute: all_balance
+        keyname: str3
+        api: fusion.GetAllBalance
+      - attribute: custom_visibility
+        keyname: str6.custom_visibility
+        api: gpc.GetInfo
+        cache: 3
+        cacheprefix: nmtt:tid:{str4.tid}

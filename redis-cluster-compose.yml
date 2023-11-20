@@ -1,0 +1,71 @@
+version: '3'
+
+networks:
+  redis-cluster-net:
+
+services:
+  redis-7000:
+    image: redis:latest
+    container_name: redis-7000
+    command: redis-server /usr/local/etc/redis/redis-7000.conf
+    ports:
+      - "7000:7000"
+    volumes:
+      - ./redis-cluster-setup/redis-7000.conf:/usr/local/etc/redis/redis-7000.conf
+    networks:
+      - redis-cluster-net
+
+  redis-7001:
+    image: redis:latest
+    container_name: redis-7001
+    command: redis-server /usr/local/etc/redis/redis-7001.conf
+    ports:
+      - "7001:7001"
+    volumes:
+      - ./redis-cluster-setup/redis-7001.conf:/usr/local/etc/redis/redis-7001.conf
+    networks:
+      - redis-cluster-net
+
+  redis-7002:
+    image: redis:latest
+    container_name: redis-7002
+    command: redis-server /usr/local/etc/redis/redis-7002.conf
+    ports:
+      - "7002:7002"
+    volumes:
+      - ./redis-cluster-setup/redis-7002.conf:/usr/local/etc/redis/redis-7002.conf
+    networks:
+      - redis-cluster-net
+
+  redis-7003:
+    image: redis:latest
+    container_name: redis-7003
+    command: redis-server /usr/local/etc/redis/redis-7003.conf
+    ports:
+      - "7003:7003"
+    volumes:
+      - ./redis-cluster-setup/redis-7003.conf:/usr/local/etc/redis/redis-7003.conf
+    networks:
+      - redis-cluster-net
+
+  redis-7004:
+    image: redis:latest
+    container_name: redis-7004
+    command: redis-server /usr/local/etc/redis/redis-7004.conf
+    ports:
+      - "7004:7004"
+    volumes:
+      - ./redis-cluster-setup/redis-7004.conf:/usr/local/etc/redis/redis-7004.conf
+    networks:
+      - redis-cluster-net
+
+  redis-7005:
+    image: redis:latest
+    container_name: redis-7005
+    command: redis-server /usr/local/etc/redis/redis-7005.conf
+    ports:
+      - "7005:7005"
+    volumes:
+      - ./redis-cluster-setup/redis-7005.conf:/usr/local/etc/redis/redis-7005.conf
+    networks:
+      - redis-cluster-net

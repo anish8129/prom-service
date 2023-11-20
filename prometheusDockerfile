@@ -1,0 +1,7 @@
+FROM openjdk:11
+EXPOSE 8085
+RUN mkdir -p /home/deploy
+RUN echo "$pwd"
+COPY build/libs/prom-service.jar /home/deploy/
+WORKDIR /home/deploy
+ENTRYPOINT ["java","-jar","prom-service.jar"]
